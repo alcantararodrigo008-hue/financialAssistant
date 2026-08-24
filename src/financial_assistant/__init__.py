@@ -1,0 +1,1 @@
+"""Logica de dominio del asistente financiero."""
