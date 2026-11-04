@@ -5,12 +5,12 @@ Closes #N
 
 ## Changes
 
-- 
+- Describe the change.
 
 ## Validation
 
 <!-- List commands and results. For documentation-only changes, record the diff and link checks; explain any checks not run. -->
-- 
+- Record the command and result.
 
 ## Review checklist
 
