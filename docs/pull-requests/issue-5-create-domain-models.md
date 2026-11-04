@@ -5,7 +5,7 @@ adding boundary-case tests, and documenting the accepted domain values.
 
 ## Validation
 
-- Both pytest entry points: 76 tests passed each, including temporary-database
+- Both pytest entry points: 89 tests passed each, including temporary-database
   Streamlit form submissions and repository round trips.
 - Ruff and pip dependency checks passed.
 - An isolated Python process constructed both models without loading Streamlit or SQLite.
@@ -23,3 +23,14 @@ GitHub's default branch differs from `main`; manually populate the PR descriptio
 and do not expect automatic issue closure. No settings changes or merge are authorized.
 
 Pending independent Senior Engineer review.
+
+## Quantization review correction
+
+Independently reproduced oversized finite values becoming NaN in all three money
+fields with `InvalidOperation` trapping disabled; a temporary SQLite database
+accepted the invalid transaction before the fix. Quantization now forces that trap
+locally, converts Decimal failures to field-specific errors, and checks finiteness
+after rounding. Regression tests exercise all three constructors through repository
+write calls, verify no rows are written on rejection, and confirm valid amounts
+still round-trip with the caller trap disabled. The actual PR description records
+the final validation counts. No persistence implementation changes are included.

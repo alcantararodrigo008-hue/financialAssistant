@@ -11,6 +11,9 @@ message; constructors do not parse date strings.
   are converted through their string representation; booleans are rejected.
 - Amounts use explicit half-even rounding to two decimal places. Values beyond
   the active Decimal context's precision are rejected with an understandable error.
+  Quantization locally enables `InvalidOperation` trapping, translates Decimal
+  failures into field-specific `ValueError`s, and checks that the rounded result is
+  finite. Caller trap settings are preserved; disabling that trap cannot admit NaN.
 - Dates must be calendar `date` objects, not `datetime` timestamps. A goal deadline
   may be `None`. Past dates and future dates are allowed; overdue-goal guidance is
   a later issue. A caller must construct valid dates, e.g. `date(2024, 2, 29)`.

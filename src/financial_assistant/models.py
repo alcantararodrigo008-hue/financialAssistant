@@ -1,6 +1,12 @@
 from dataclasses import dataclass
 from datetime import date
-from decimal import ROUND_HALF_EVEN, Decimal, InvalidOperation, localcontext
+from decimal import (
+    ROUND_HALF_EVEN,
+    Decimal,
+    DecimalException,
+    InvalidOperation,
+    localcontext,
+)
 
 GOAL_STATUSES = {"active", "completed"}
 TRANSACTION_TYPES = {"income", "expense"}
@@ -29,9 +35,13 @@ def _amount(value: Decimal | float | str, label: str, *, allow_zero: bool = Fals
             raise ValueError(f"{label} {requirement}.")
         with localcontext() as context:
             context.rounding = ROUND_HALF_EVEN
+            # Caller trap settings must not let failed quantization return NaN.
+            context.traps[InvalidOperation] = True
             rounded = amount.quantize(Decimal("0.01"))
-    except InvalidOperation as error:
+    except DecimalException as error:
         raise ValueError(f"{label} must be a valid number within supported decimal precision.") from error
+    if not rounded.is_finite():
+        raise ValueError(f"{label} must be finite after rounding.")
     if not allow_zero and rounded == 0:
         raise ValueError(f"{label} must be at least 0.01 after rounding.")
     return rounded
