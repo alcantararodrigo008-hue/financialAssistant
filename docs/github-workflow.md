@@ -44,6 +44,15 @@ gh pr create --base main
 
 The [PR template](../.github/pull_request_template.md) provides the summary, validation, and checklist. Include `Closes #3` (using the actual issue number) in the actual GitHub PR description when the work fully resolves the issue. A local PR note alone does not activate closing keywords.
 
+GitHub discovers PR templates from the repository's default branch, currently `issue-1-configure-python-environment`, not `main`. Automatic discovery of this template is currently unavailable under the existing configuration. Merging the template into `main` alone will not automatically populate new PR descriptions. See [GitHub's template documentation](https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/creating-a-pull-request-template-for-your-repository).
+
+Until the template is available on the default branch, use this manual fallback:
+
+1. Open `.github/pull_request_template.md` on your issue branch (or `main` after this PR merges).
+2. Copy its contents into the actual GitHub PR description, either while creating the PR or by editing its description afterward.
+3. Replace placeholders with the real issue number, changes, validation results, and limitations.
+4. Complete the checklist before requesting independent review.
+
 **Current repository limitation:** GitHub's default branch is `issue-1-configure-python-environment`, while this workflow targets `main`. Closing keywords are interpreted only for PRs targeting the default branch. Until the owner changes that setting, do not assume a merge into `main` automatically links or closes an issue. Use the Development sidebar to link the issue and PR. Manual closure requires appropriate explicit authorization and does not itself create a structured closing relationship. Do not change repository settings as part of routine issue work.
 
 ## Review before merging
