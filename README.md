@@ -6,6 +6,29 @@ Local web application for recording income and expenses, tracking savings goals,
 
 ## Run
 
+Run the commands below from the repository root. The repository uses this structure:
+
+```text
+app.py                    Streamlit application entry point
+main.py                   Prints the command for launching the app
+requirements.txt          Application and development dependencies
+pytest.ini                Test discovery and src package import configuration
+README.md / PLAN.md       Setup guide and project plan
+data/                     Local data; only .gitkeep is tracked
+docs/                     Workflow, issue notes, and PR notes
+src/financial_assistant/  Python package: models and SQLite repository
+tests/                    Automated model, repository, and app smoke tests
+```
+
+The app loads its package from `src/`; pytest uses the same package through
+`pytest.ini`. No editable installation or external `PYTHONPATH` is required for
+these entry points. A standalone Python shell must add `src/` to its import path.
+The repository creates `data/financial_assistant.db` relative to the current
+working directory when the app runs. All contents of the root `data/` directory
+except `.gitkeep` are ignored, including SQLite databases and journal/WAL files.
+Keep local databases in that directory; Git does not ignore arbitrary database
+paths elsewhere in the repository.
+
 Requires Python 3.12 or newer.
 
 ```powershell
