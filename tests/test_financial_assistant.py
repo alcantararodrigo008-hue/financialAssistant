@@ -3,8 +3,8 @@ from decimal import Decimal
 
 import pytest
 
-from src.financial_assistant.models import FinancialGoal, Transaction
-from src.financial_assistant.repository import SQLiteRepository
+from financial_assistant.models import FinancialGoal, Transaction
+from financial_assistant.repository import SQLiteRepository
 
 
 def test_models_reject_non_positive_amounts():
