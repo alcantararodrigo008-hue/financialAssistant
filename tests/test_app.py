@@ -30,3 +30,9 @@ def test_valid_models_work_through_app_forms(tmp_path, monkeypatch):
     with sqlite3.connect(tmp_path / "data" / "financial_assistant.db") as connection:
         assert connection.execute("SELECT name FROM goals").fetchone()[0] == "Emergency fund"
         assert connection.execute("SELECT amount FROM transactions").fetchone()[0] == "25.00"
+
+    reopened = AppTest.from_file(str(app_path), default_timeout=10).run()
+    assert not reopened.exception
+    assert reopened.metric[0].value == "25.00 EUR"
+    assert reopened.dataframe[0].value.iloc[0]["Amount"] == "25.00 EUR"
+    assert any("Emergency fund" in item.value for item in reopened.markdown)
