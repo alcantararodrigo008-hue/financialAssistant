@@ -17,28 +17,32 @@ Keep issue and PR notes under `docs/issues/` and `docs/pull-requests/` respectiv
 
 When an issue is resolved and the user asks to close it (or approves a related PR), follow this workflow:
 
-### 1. Ensure PR Description Contains the "Closes" Keyword
-The PR description must include the text `Closes issue #<number>` at the beginning of the Summary section. This GitHub keyword automatically creates a bidirectional link between the PR and the issue:
+### 1. Add a Closing Keyword to the Actual GitHub PR Description
 
-Example in `docs/pull-requests/`:
+Use `Closes #<number>` in the actual GitHub PR description when the PR resolves the issue. A local record in `docs/pull-requests/` alone does not activate GitHub closing keywords; copy the relevant text into the PR description.
+
+Example PR description:
 ```markdown
 ## Summary
-Closes issue #2 by documenting the purpose of the Financial Assistant...
+Closes #2 by documenting the purpose of the Financial Assistant.
 ```
 
-### 2. Merge the PR
-The PR should be merged into the target branch (e.g., `main` or another issue branch).
+GitHub interprets PR closing keywords only when the PR targets the repository's default branch. With automatic issue closure enabled, merging that PR into the default branch closes the linked issue automatically. Verify the default branch rather than assuming it is `main`. Keywords in PRs targeting other branches are ignored for automatic linking and closure.
 
-### 3. Explicitly Close the Issue via GitHub CLI
-Even if the PR has merged with the "Closes" keyword, explicitly close the issue to ensure GitHub recognizes the relationship, especially when merging into non-main branches:
+### 2. Verify the Link and Merge Only When Authorized
+
+Check the GitHub Development sidebar for the linked issue or PR. Users with write permissions can also use this sidebar on an issue or PR to create a structured link manually. A mention in a comment or a local Markdown file is not a substitute for this link.
+
+Merge only after review and user authorization. For PRs targeting the default branch, verify automatic issue closure after merging.
+
+### 3. Close an Issue Manually Only When Appropriate
+
+Use `gh issue close` only when explicitly closing the issue is appropriate and authorized, for example when completed work has been verified but automatic closure did not occur. Do not close an issue merely to establish a PR relationship or because a PR merged into a non-default branch.
+
+Manually closing an issue changes its status; it does not create a structured PR closing relationship. A comment referencing a PR provides context but does not create that relationship either. Use the Development sidebar to link the issue and PR when needed.
 
 ```bash
-gh issue close <number> --comment "Closed by PR #<pr-number>"
-```
-
-Example:
-```bash
-gh issue close 2 --comment "Closed by PR #22"
+gh issue close <number> --comment "Resolved by PR #<pr-number>"
 ```
 
 ### 4. Update Local Issue Documentation
@@ -54,14 +58,14 @@ Example addition to issue file:
 **Closed** — Resolved by [PR #22](https://github.com/user/repo/pull/22) on August 29, 2026.
 ```
 
-### 5. Verify the Relationship
-After closing, verify the relationship appears on GitHub:
-- Issue should show: **Closed** badge
-- Issue should display: linked PR in activity/mentions
-- PR should show: "closes issue #<number>" link in the description
-- Both should link bidirectionally in GitHub's UI
+### 5. Verify Closure and the Relationship Separately
 
-**Note:** If the PR merges into a non-main branch, use `gh issue close` explicitly because GitHub's automatic "Closes" linking may not trigger until the issue is explicitly marked as closed.
+- Confirm the issue is closed only when the work is complete and closure is appropriate.
+- Confirm the issue and PR are linked in GitHub's Development sidebar.
+- For keyword-based linking, confirm `Closes #<number>` appears in the actual GitHub PR description and the PR targets the default branch.
+- Do not treat a Closed badge or a PR mention as proof of a structured closing relationship.
+
+Reference: [GitHub Docs: Linking a pull request to an issue](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue).
 
 When the user asks to review a pull request, act as a Senior Software Engineer.
 
