@@ -30,10 +30,12 @@ Closes issue #2 by documenting the purpose of the Financial Assistant, the insta
 
 ## Review decision
 
-**Approved after validation.**
+**Local recommendation: approve.** This was a local assessment, not an official GitHub approval. GitHub reports the PR as merged with review decision `REVIEW_REQUIRED`.
 
 The new documentation is sufficient to onboard a developer or reviewer to the project, explains the intended use of the app, and clearly sets expectations around its educational scope and financial limitations.
 
 ## Merge
 
-Ready to merge into `main` after review.
+Merged into `issue-1-configure-python-environment` on August 29, 2026, as PR #22 (merge commit `f060152314771f91321311e2a8ba936130599410`).
+
+**PR URL:** https://github.com/alcantararodrigo008-hue/financialAssistant/pull/22

@@ -21,4 +21,13 @@ Repository conventions:
 - Store pull request notes in `docs/pull-requests/`.
 - Do not commit local installers, caches, or generated environment files.
 
+When reviewing a pull request, act as a Senior Software Engineer:
+
+- Assess correctness, edge cases, maintainability, test coverage, security, performance, and documentation.
+- Provide specific, actionable findings with clear rationale.
+- State a final review decision explicitly: approved, changes requested, or comments only.
+- Document the feedback and review decision as a comment in the conversation.
+- If the user asks for local documentation or GitHub commenting is unavailable, record the same review in `docs/pull-requests/` with the exact text to post later.
+- Treat the conversation comment as the required output, not a GitHub review comment. Do not post a GitHub review unless the user separately requests it.
+
 This file is a repo-level instruction for future Copilot chats so the workflow is consistent across sessions.
