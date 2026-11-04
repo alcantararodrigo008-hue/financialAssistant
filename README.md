@@ -2,6 +2,7 @@
 
 For development and pull requests, see the [GitHub workflow](docs/github-workflow.md).
 For storage methods, filters, and privacy boundaries, see [SQLite persistence](docs/sqlite-persistence.md).
+For goal creation, progress, and savings estimate assumptions, see [the goals screen](docs/goals-screen.md).
 
 Local web application for recording income and expenses, tracking savings goals, and understanding monthly finances. Data is stored in SQLite inside `data/` and the application does not connect to bank accounts.
 
