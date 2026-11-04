@@ -11,7 +11,7 @@ def test_models_reject_non_positive_amounts():
     with pytest.raises(ValueError):
         FinancialGoal("Viaje", Decimal(0))
     with pytest.raises(ValueError):
-        Transaction("expense", Decimal(-1), datetime.now(timezone.utc).date(), "Ocio")
+        Transaction("expense", Decimal(-1), datetime.now(timezone.utc).date(), "Other")
 
 
 def test_repository_round_trips_goal_and_transaction(tmp_path):
