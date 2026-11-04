@@ -29,3 +29,21 @@ for the Financial Assistant MVP.
 - [x] Setup and execution instructions are documented.
 - [x] Local databases, environments, caches, and installers are excluded.
 - [x] Tests and lint checks pass.
+
+## Review decision
+
+**Approved after follow-up changes.**
+
+The PowerShell activation command in `README.md` was corrected to
+`.\.venv\Scripts\Activate.ps1` and the embedded NUL byte was removed. The
+README now renders as text and the setup command works as documented.
+
+Follow-up validation confirmed that the test suite passes with 3 tests and
+Ruff reports no errors. The pull request is mergeable with no conflicts. No
+automated GitHub checks are configured, so the decision is based on the local
+validation recorded above.
+
+## Merge
+
+Merged into `main` on August 24, 2026, as commit `8205417`
+(`82054171a7d283bf14c18e2ea4f74ccfa9dbead5`).

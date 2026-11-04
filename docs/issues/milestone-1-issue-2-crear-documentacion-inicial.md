@@ -30,3 +30,7 @@ Documentar el propósito del proyecto, las instrucciones de instalación y ejecu
 ## Notas
 
 Este proyecto es una herramienta educativa para aprender Python, GitHub Copilot, GitHub y Streamlit. Sus cálculos y sugerencias están pensados para apoyar la comprensión de finanzas personales, no para reemplazar el criterio profesional ni la asesoría financiera personalizada.
+
+## Status
+
+**Closed** — Resolved by [PR #22](https://github.com/alcantararodrigo008-hue/financialAssistant/pull/22) on August 29, 2026.
