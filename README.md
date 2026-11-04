@@ -1,5 +1,7 @@
 # Financial Assistant
 
+For development and pull requests, see the [GitHub workflow](docs/github-workflow.md).
+
 Local web application for recording income and expenses, tracking savings goals, and understanding monthly finances. Data is stored in SQLite inside `data/` and the application does not connect to bank accounts.
 
 ## Run
