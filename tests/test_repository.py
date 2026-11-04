@@ -139,7 +139,8 @@ def test_user_text_is_stored_literally_not_executed(repository):
 
 
 @pytest.mark.parametrize("field", ["target_amount", "saved_amount", "amount"])
-def test_invalid_mutated_models_cannot_insert_or_overwrite_valid_data(repository, field):
+@pytest.mark.parametrize("invalid_amount", ["NaN", "-1", "1e100"])
+def test_invalid_mutated_models_cannot_insert_or_overwrite_valid_data(repository, field, invalid_amount):
     if field == "amount":
         original = Transaction("income", 1, date(2026, 1, 1), "Other")
         record_id = repository.add_transaction(original)
@@ -151,7 +152,7 @@ def test_invalid_mutated_models_cannot_insert_or_overwrite_valid_data(repository
         stored = repository.get_goal(record_id)
         add, update, get = repository.add_goal, repository.update_goal, repository.get_goal
     invalid = replace(stored)
-    object.__setattr__(invalid, field, Decimal("NaN"))
+    object.__setattr__(invalid, field, Decimal(invalid_amount))
     with localcontext() as context:
         context.traps[InvalidOperation] = False
         with pytest.raises(ValueError):
@@ -218,3 +219,13 @@ def test_corrupt_stored_recurring_flag_is_not_silently_coerced(repository):
         repository.get_transaction(transaction_id)
     with pytest.raises(ValueError, match="recurring"):
         repository.list_transactions()
+
+
+def test_month_filter_separates_december_january_and_same_month_in_other_years(repository):
+    dates = (date(2023, 12, 31), date(2024, 1, 1), date(2024, 12, 31), date(2025, 1, 1))
+    ids = [repository.add_transaction(Transaction("income", "0.01", day, "Other")) for day in dates]
+    for day, record_id in zip(dates, ids, strict=True):
+        records = repository.list_transactions(day.strftime("%Y-%m"))
+        assert [item.transaction_id for item in records] == [record_id]
+        assert records[0].transaction_date == day
+    assert repository.list_transactions("2024-02") == []
