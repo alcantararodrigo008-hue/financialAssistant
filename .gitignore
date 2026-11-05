@@ -9,3 +9,16 @@ data/*
 .vscode/
 *.msix
 jdk-26_windows-x64_bin.exe
+
+# SQLite files and sidecars, including custom repository paths.
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+
+# Local credentials are never project inputs.
+.env
+.env.*
+.streamlit/secrets.toml

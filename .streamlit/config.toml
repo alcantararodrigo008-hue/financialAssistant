@@ -1,0 +1,9 @@
+# Apply when launching Streamlit from the repository root.
+[server]
+address = "127.0.0.1"
+enableCORS = true
+enableXsrfProtection = true
+enableStaticServing = false
+
+[browser]
+gatherUsageStats = false
