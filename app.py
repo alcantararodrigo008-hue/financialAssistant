@@ -35,7 +35,7 @@ metric_columns[3].metric("Savings rate", f"{(savings / income * 100):.1f}%" if i
 with st.expander("Add transaction", expanded=True), st.form("transaction_form"):
     columns = st.columns(3)
     transaction_type = columns[0].selectbox("Type", ["income", "expense"], format_func=lambda value: "Income" if value == "income" else "Expense")
-    amount = columns[1].number_input("Amount (EUR)", min_value=0.01, step=10.0)
+    amount = columns[1].number_input("Amount (EUR)", value=0.01, step=10.0, help="Enter a positive amount. Zero and negative amounts cannot be saved.")
     transaction_date = columns[2].date_input("Date", today)
     category = st.selectbox("Category", sorted(CATEGORIES))
     description = st.text_input("Description (optional)")
@@ -55,8 +55,8 @@ if st.session_state.pop("transaction_saved", False):
 
 with st.expander("Create goal"), st.form("goal_form"):
     name = st.text_input("Goal name")
-    target_amount = st.number_input("Target amount (EUR)", min_value=0.01, step=100.0)
-    saved_amount = st.number_input("Current savings (EUR)", min_value=0.0, step=50.0)
+    target_amount = st.number_input("Target amount (EUR)", value=0.01, step=100.0, help="Enter a positive target amount.")
+    saved_amount = st.number_input("Current savings (EUR)", value=0.0, step=50.0, help="Zero is valid; negative savings cannot be saved.")
     deadline = st.date_input("Deadline (optional)", value=None)
     priority = st.number_input("Priority", min_value=1, max_value=5, value=1)
     if st.form_submit_button("Save goal"):
@@ -91,6 +91,9 @@ def show_goal(goal: FinancialGoal) -> None:
         monthly = required_monthly_savings(goal, today)
         st.write(f"Required monthly savings (estimate): {monthly:.2f} EUR")
         st.caption(f"Deadline: {goal.deadline.isoformat()} | Partial calendar months count as a full month; rounded up to cents.")
+    if st.button("Delete goal", key=f"request_delete_goal_{goal.goal_id}"):
+        st.session_state["pending_deletion"] = ("goal", goal)
+        st.rerun()
 
 
 st.subheader("Active goals")
@@ -125,4 +128,46 @@ if filtered_transactions:
         for item in filtered_transactions
     ], use_container_width=True, hide_index=True)
 else:
-    st.info("No transactions match the selected month, type, and category.")
+    st.info("No transactions match the selected month, type, and category. Add a transaction above, choose another month, or select All types and All categories.")
+
+if filtered_transactions:
+    transaction_options = {item.transaction_id: item for item in filtered_transactions}
+    if st.session_state.get("transaction_to_delete") not in transaction_options:
+        st.session_state["transaction_to_delete"] = None
+    deletion_id = st.selectbox(
+        "Transaction to delete", [None, *transaction_options], key="transaction_to_delete",
+        format_func=lambda value: "Choose a transaction" if value is None else (
+            f"#{value} | {transaction_options[value].transaction_date.isoformat()} | "
+            f"{transaction_options[value].transaction_type.title()} | {transaction_options[value].amount:.2f} EUR | "
+            f"{transaction_options[value].category}"
+        ),
+    )
+    if st.button("Delete transaction", disabled=deletion_id is None):
+        st.session_state["pending_deletion"] = ("transaction", transaction_options[deletion_id])
+        st.rerun()
+
+if message := st.session_state.pop("deletion_message", None):
+    st.info(message)
+
+if pending := st.session_state.get("pending_deletion"):
+    kind, record = pending
+    st.warning(f"Permanently delete this {kind}? This cannot be undone. Confirm or cancel below.")
+    if kind == "goal":
+        st.text(f"Goal #{record.goal_id}: {record.name}\nSaved: {record.saved_amount:.2f} / {record.target_amount:.2f} EUR")
+    else:
+        st.text(f"Transaction #{record.transaction_id}: {record.transaction_date.isoformat()} | {record.transaction_type} | {record.amount:.2f} EUR | {record.category}\n{record.description}")
+    confirm_column, cancel_column = st.columns(2)
+    if confirm_column.button("Confirm delete", key="confirm_deletion"):
+        if kind == "goal":
+            deleted = repository.delete_goal(record.goal_id, expected=record)
+        else:
+            deleted = repository.delete_transaction(record.transaction_id, expected=record)
+        st.session_state.pop("pending_deletion")
+        st.session_state["deletion_message"] = (
+            "Record deleted." if deleted else "Record changed or was already deleted. Nothing was deleted; select the record again if needed."
+        )
+        st.rerun()
+    if cancel_column.button("Cancel deletion", key="cancel_deletion"):
+        st.session_state.pop("pending_deletion")
+        st.session_state["deletion_message"] = "Deletion cancelled. Your records were kept."
+        st.rerun()

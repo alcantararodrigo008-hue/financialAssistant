@@ -13,6 +13,10 @@ reached!** without changing its persisted status. Previously marked completed go
 appear separately under **Completed goals**, even if their savings are below target;
 this is a stored status, not evidence that the balance reached the target.
 
+Each goal has a **Delete goal** action. It opens a record summary and requires
+**Confirm delete** before removal. **Cancel deletion** preserves the record.
+Changed or already-deleted records invalidate the confirmation; select again.
+
 ## Required monthly savings
 
 The pure `required_monthly_savings(goal, as_of)` function in
@@ -56,5 +60,5 @@ Streamlit AppTest covers submissions, persistence, progress, messages, plain-tex
 names, and unchanged data on viewing or invalid submission. Tests use temporary
 SQLite files. Browser layout and a live HTTP server are not tested. Existing
 number widgets use floats, so very large inputs remain subject to widget precision
-limits; persisted money and estimates use Decimal. Editing/deleting goals,
+limits; persisted money and estimates use Decimal. Editing goals,
 transaction allocation, and broad UI/storage-error handling belong to later issues.

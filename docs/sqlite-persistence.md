@@ -39,6 +39,11 @@ must be 0 or 1. There is no migration or cleanup of invalid legacy records.
 
 IDs for get/update/delete must be actual integers from 1 through `2**63 - 1`;
 booleans, missing IDs, and numeric strings are rejected with `ValueError`.
+Deletion optionally accepts `expected=stored_model`. This compares the ID and all
+stored fields in the DELETE statement, returning `False` if the record changed or
+is missing. The UI uses this atomic snapshot check after explicit confirmation;
+existing calls without `expected` retain their original ID-only behavior. A
+snapshot for another ID raises `ValueError`. Values remain SQL parameters.
 Create a modified frozen model with `dataclasses.replace`, preserving its ID:
 
 ```python
@@ -70,8 +75,9 @@ Git, including SQLite sidecars. Keep local financial files there; arbitrary path
 outside it are not covered. Git ignore rules do not encrypt data or protect it
 from other users of the computer. No financial records are sent externally.
 
-CRUD is provided at the repository level; new edit/delete UI controls and friendly
-UI error messages belong to later interface issues. Tests cover CRUD, restart
+CRUD is provided at the repository level; the UI supports confirmed deletion and
+model validation errors. Edit controls and broad storage-error presentation remain
+outside this implementation. Tests cover CRUD, restart
 persistence, combined filters, calendar boundaries, exact money, SQL-like input,
 invalid writes, rollback, connection closure, and actual Streamlit submissions
 and reopening. Browser rendering and concurrent multi-process lock behavior are
