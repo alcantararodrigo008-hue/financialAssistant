@@ -30,7 +30,7 @@ def test_valid_models_work_through_app_forms(tmp_path, monkeypatch):
     next(item for item in app.button if item.label == "Save goal").click().run()
     assert not app.exception
     next(item for item in app.number_input if item.label == "Amount (EUR)").set_value(25.0)
-    next(item for item in app.button if item.label == "Guardar movimiento").click().run()
+    next(item for item in app.button if item.label == "Save transaction").click().run()
     assert not app.exception
     with sqlite3.connect(tmp_path / "data" / "financial_assistant.db") as connection:
         assert connection.execute("SELECT name FROM goals").fetchone()[0] == "Emergency fund"

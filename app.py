@@ -16,7 +16,11 @@ st.title("Financial Assistant")
 st.caption("Your data is stored locally. Educational project, not financial advice.")
 
 today = datetime.now(timezone.utc).date()
-month = st.sidebar.date_input("Dashboard month", today, key="dashboard_month").strftime("%Y-%m")
+selected_month = st.sidebar.date_input("Dashboard month", today, key="dashboard_month")
+if selected_month is None:
+    st.info("Choose a dashboard month to record and view transactions.")
+    st.stop()
+month = selected_month.strftime("%Y-%m")
 transactions = repository.list_transactions(month)
 income = sum(item.amount for item in transactions if item.transaction_type == "income")
 expenses = sum(item.amount for item in transactions if item.transaction_type == "expense")
@@ -29,17 +33,25 @@ metric_columns[2].metric("Net savings", f"{savings:.2f} EUR")
 metric_columns[3].metric("Savings rate", f"{(savings / income * 100):.1f}%" if income else "No income")
 
 with st.expander("Add transaction", expanded=True), st.form("transaction_form"):
-        columns = st.columns(3)
-        transaction_type = columns[0].selectbox("Type", ["income", "expense"], format_func=lambda value: "Income" if value == "income" else "Expense")
-        amount = columns[1].number_input("Amount (EUR)", min_value=0.01, step=10.0)
-        transaction_date = columns[2].date_input("Date", today)
-        category = st.selectbox("Category", sorted(CATEGORIES))
-        description = st.text_input("Description")
-        recurring = st.checkbox("Recurring transaction")
-        if st.form_submit_button("Guardar movimiento"):
-            repository.add_transaction(Transaction(transaction_type, amount, transaction_date, category, description, recurring))
-            st.success("Transaction saved.")
+    columns = st.columns(3)
+    transaction_type = columns[0].selectbox("Type", ["income", "expense"], format_func=lambda value: "Income" if value == "income" else "Expense")
+    amount = columns[1].number_input("Amount (EUR)", min_value=0.01, step=10.0)
+    transaction_date = columns[2].date_input("Date", today)
+    category = st.selectbox("Category", sorted(CATEGORIES))
+    description = st.text_input("Description (optional)")
+    recurring = st.checkbox("Recurring transaction")
+    if st.form_submit_button("Save transaction"):
+        try:
+            transaction = Transaction(transaction_type, amount, transaction_date, category, description, recurring)
+        except ValueError as error:
+            st.error(str(error))
+        else:
+            repository.add_transaction(transaction)
+            st.session_state["transaction_saved"] = True
             st.rerun()
+
+if st.session_state.pop("transaction_saved", False):
+    st.success("Transaction saved.")
 
 with st.expander("Create goal"), st.form("goal_form"):
     name = st.text_input("Goal name")
@@ -95,10 +107,22 @@ if completed_goals:
             show_goal(goal)
 
 st.subheader(f"Transactions for {month}")
-if transactions:
+st.caption("Choose the month using Dashboard month in the sidebar. Records are shown newest first.")
+filter_columns = st.columns(2)
+type_filter = filter_columns[0].selectbox(
+    "Transaction type filter", [None, "income", "expense"], key="transaction_type_filter",
+    format_func=lambda value: "All types" if value is None else value.title(),
+)
+category_filter = filter_columns[1].selectbox(
+    "Transaction category filter", [None, *sorted(CATEGORIES)], key="transaction_category_filter",
+    format_func=lambda value: "All categories" if value is None else value,
+)
+filtered_transactions = repository.list_transactions(month, type_filter, category_filter)
+st.caption("These list filters do not change the monthly dashboard totals.")
+if filtered_transactions:
     st.dataframe([
-        {"Date": item.transaction_date.isoformat(), "Type": "Income" if item.transaction_type == "income" else "Expense", "Amount": f"{item.amount:.2f} EUR", "Category": item.category, "Description": item.description}
-        for item in transactions
+        {"Date": item.transaction_date.isoformat(), "Type": "Income" if item.transaction_type == "income" else "Expense", "Amount": f"{item.amount:.2f} EUR", "Category": item.category, "Description": item.description, "Recurring": item.recurring}
+        for item in filtered_transactions
     ], use_container_width=True, hide_index=True)
 else:
-    st.info("There are no transactions for this month.")
+    st.info("No transactions match the selected month, type, and category.")
