@@ -8,6 +8,7 @@ sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 from financial_assistant.goal_planning import required_monthly_savings
 from financial_assistant.models import CATEGORIES, FinancialGoal, Transaction
+from financial_assistant.monthly_summary import calculate_monthly_summary
 from financial_assistant.repository import SQLiteRepository
 
 repository = SQLiteRepository()
@@ -22,15 +23,15 @@ if selected_month is None:
     st.stop()
 month = selected_month.strftime("%Y-%m")
 transactions = repository.list_transactions(month)
-income = sum(item.amount for item in transactions if item.transaction_type == "income")
-expenses = sum(item.amount for item in transactions if item.transaction_type == "expense")
-savings = income - expenses
+summary = calculate_monthly_summary(transactions)
 
+st.subheader(f"Monthly summary for {month}")
 metric_columns = st.columns(4)
-metric_columns[0].metric("Income", f"{income:.2f} EUR")
-metric_columns[1].metric("Expenses", f"{expenses:.2f} EUR")
-metric_columns[2].metric("Net savings", f"{savings:.2f} EUR")
-metric_columns[3].metric("Savings rate", f"{(savings / income * 100):.1f}%" if income else "No income")
+metric_columns[0].metric("Income", f"{summary.income:.2f} EUR")
+metric_columns[1].metric("Expenses", f"{summary.expenses:.2f} EUR")
+metric_columns[2].metric("Net savings", f"{summary.net_savings:.2f} EUR")
+metric_columns[3].metric("Savings rate", f"{summary.savings_rate_percent:.1f}%" if summary.savings_rate_percent is not None else "No income")
+st.caption("Net savings = income minus expenses. Savings rate = net savings / income × 100; unavailable without income.")
 
 with st.expander("Add transaction", expanded=True), st.form("transaction_form"):
     columns = st.columns(3)
