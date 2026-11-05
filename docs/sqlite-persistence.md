@@ -71,9 +71,12 @@ expenses = repository.list_transactions("2026-11", "expense", "Food")
 
 All supplied SQL values use bound parameters; filter column names come from a
 fixed internal list. The root `data/` contents except `.gitkeep` are ignored by
-Git, including SQLite sidecars. Keep local financial files there; arbitrary paths
-outside it are not covered. Git ignore rules do not encrypt data or protect it
-from other users of the computer. No financial records are sent externally.
+Git, including SQLite sidecars. Common `.db`, `.sqlite` and `.sqlite3` files and
+their extension-based sidecars are also ignored elsewhere. Keep financial files
+in `data/`; arbitrary exports or extensionless files outside it are not covered.
+Git ignore rules do not encrypt data or protect it from other users of the computer. Repository operations have no external service
+client. For server/telemetry settings, browser checks, OS cloud-sync risks and
+other boundaries, see [privacy and security](privacy-security.md).
 
 CRUD is provided at the repository level; the UI supports confirmed deletion and
 model validation errors. Edit controls and broad storage-error presentation remain

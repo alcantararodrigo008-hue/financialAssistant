@@ -21,7 +21,7 @@ from financial_assistant.visualizations import (
 repository = SQLiteRepository()
 st.set_page_config(page_title="Financial Assistant", page_icon="€", layout="wide")
 st.title("Financial Assistant")
-st.caption("Your data is stored locally. Educational project, not financial advice.")
+st.caption("Local SQLite storage is not encrypted by this app. Use synthetic data only. Educational project, not financial advice.")
 
 today = datetime.now(timezone.utc).date()
 selected_month = st.sidebar.date_input("Dashboard month", today, key="dashboard_month")
