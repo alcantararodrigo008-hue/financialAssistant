@@ -26,10 +26,11 @@ def test_valid_models_work_through_app_forms(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     app = AppTest.from_file(str(app_path), default_timeout=10).run()
     next(item for item in app.text_input if item.label == "Goal name").set_value("Emergency fund")
-    next(item for item in app.number_input if item.label == "Target amount (EUR)").set_value(100.0)
+    next(item for item in app.text_input if item.label == "Target amount (EUR)").set_value("100.00")
+    next(item for item in app.text_input if item.label == "Current savings (EUR)").set_value("0")
     next(item for item in app.button if item.label == "Save goal").click().run()
     assert not app.exception
-    next(item for item in app.number_input if item.label == "Amount (EUR)").set_value(25.0)
+    next(item for item in app.text_input if item.label == "Amount (EUR)").set_value("25.00")
     next(item for item in app.button if item.label == "Save transaction").click().run()
     assert not app.exception
     with sqlite3.connect(tmp_path / "data" / "financial_assistant.db") as connection:

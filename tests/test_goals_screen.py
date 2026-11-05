@@ -22,8 +22,8 @@ def test_goal_form_persists_optional_deadline_and_progress(goals_app, dated):
     app.run()
     name = "[Goal](https://example.com) <script>example</script>"
     next(item for item in app.text_input if item.label == "Goal name").set_value(name)
-    next(item for item in app.number_input if item.label == "Target amount (EUR)").set_value(125.0)
-    next(item for item in app.number_input if item.label == "Current savings (EUR)").set_value(25.0)
+    next(item for item in app.text_input if item.label == "Target amount (EUR)").set_value("125.00")
+    next(item for item in app.text_input if item.label == "Current savings (EUR)").set_value("25.00")
     deadline = datetime.now(timezone.utc).date() + timedelta(days=1) if dated else None
     if dated:
         next(item for item in app.date_input if item.label == "Deadline (optional)").set_value(deadline)

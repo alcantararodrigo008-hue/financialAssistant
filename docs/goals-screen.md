@@ -1,7 +1,9 @@
 # Goals screen
 
 Open **Create goal** in the app. Enter a nonblank name, positive target amount,
-current savings (zero is valid), optional deadline, and priority (1–5). **Save goal**
+current savings (enter `0` if none), optional deadline, and priority (1–5). Monetary
+fields start empty and require explicit decimal text using a dot, such as `12.50`.
+Blank, malformed, and non-finite values show errors rather than becoming defaults. **Save goal**
 validates the model before writing through the SQLite repository. On success the
 app reruns, confirms the save, and shows the new active goal. Validation errors
 leave storage unchanged. The existing repository methods and schema are unchanged.
@@ -12,6 +14,10 @@ then creation ID. A goal whose savings cover or exceed the target displays **Goa
 reached!** without changing its persisted status. Previously marked completed goals
 appear separately under **Completed goals**, even if their savings are below target;
 this is a stored status, not evidence that the balance reached the target.
+
+Each goal has a **Delete goal** action. It opens a record summary and requires
+**Confirm delete** before removal. **Cancel deletion** preserves the record.
+Changed or already-deleted records invalidate the confirmation; select again.
 
 ## Required monthly savings
 
@@ -55,6 +61,6 @@ missing/past/today deadlines, completion, and caller Decimal context isolation.
 Streamlit AppTest covers submissions, persistence, progress, messages, plain-text
 names, and unchanged data on viewing or invalid submission. Tests use temporary
 SQLite files. Browser layout and a live HTTP server are not tested. Existing
-number widgets use floats, so very large inputs remain subject to widget precision
-limits; persisted money and estimates use Decimal. Editing/deleting goals,
+monetary text inputs, persisted money, and estimates use Decimal without a float
+conversion. Amounts must fit the model's Decimal precision. Editing goals,
 transaction allocation, and broad UI/storage-error handling belong to later issues.

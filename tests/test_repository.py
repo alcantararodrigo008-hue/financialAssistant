@@ -229,3 +229,22 @@ def test_month_filter_separates_december_january_and_same_month_in_other_years(r
         assert [item.transaction_id for item in records] == [record_id]
         assert records[0].transaction_date == day
     assert repository.list_transactions("2024-02") == []
+
+
+@pytest.mark.parametrize("kind", ["goal", "transaction"])
+def test_guarded_deletion_compares_full_snapshot_and_validates_id(repository, kind):
+    if kind == "goal":
+        record_id = repository.add_goal(FinancialGoal("O'Brien", 100, deadline=date(2028, 2, 29)))
+        get, update, delete = repository.get_goal, repository.update_goal, repository.delete_goal
+    else:
+        record_id = repository.add_transaction(Transaction("expense", 10, date(2024, 2, 29), "Food", "O'Brien"))
+        get, update, delete = repository.get_transaction, repository.update_transaction, repository.delete_transaction
+    snapshot = get(record_id)
+    with pytest.raises(ValueError, match="Confirmation"):
+        delete(record_id + 1, expected=snapshot)
+    changed = replace(snapshot, name="Changed") if kind == "goal" else replace(snapshot, description="Changed")
+    assert update(changed)
+    assert delete(record_id, expected=snapshot) is False
+    assert get(record_id) == changed
+    assert delete(record_id, expected=changed) is True
+    assert delete(record_id, expected=changed) is False

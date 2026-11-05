@@ -127,8 +127,17 @@ class SQLiteRepository:
             )
             return cursor.rowcount == 1
 
-    def delete_goal(self, goal_id: int) -> bool:
+    def delete_goal(self, goal_id: int, *, expected: FinancialGoal | None = None) -> bool:
         goal_id = self._record_id(goal_id)
+        if expected is not None:
+            values = self._goal_values(expected)
+            if expected.goal_id != goal_id:
+                raise ValueError("Confirmation does not match the goal ID.")
+            with self._connection() as connection:
+                return connection.execute(
+                    "DELETE FROM goals WHERE id = ? AND name = ? AND target_amount = ? AND saved_amount = ? AND deadline IS ? AND priority = ? AND status = ?",
+                    (goal_id, *values),
+                ).rowcount == 1
         with self._connection() as connection:
             return connection.execute("DELETE FROM goals WHERE id = ?", (goal_id,)).rowcount == 1
 
@@ -186,7 +195,16 @@ class SQLiteRepository:
             )
             return cursor.rowcount == 1
 
-    def delete_transaction(self, transaction_id: int) -> bool:
+    def delete_transaction(self, transaction_id: int, *, expected: Transaction | None = None) -> bool:
         transaction_id = self._record_id(transaction_id)
+        if expected is not None:
+            values = self._transaction_values(expected)
+            if expected.transaction_id != transaction_id:
+                raise ValueError("Confirmation does not match the transaction ID.")
+            with self._connection() as connection:
+                return connection.execute(
+                    "DELETE FROM transactions WHERE id = ? AND transaction_type = ? AND amount = ? AND transaction_date = ? AND category = ? AND description = ? AND recurring = ?",
+                    (transaction_id, *values),
+                ).rowcount == 1
         with self._connection() as connection:
             return connection.execute("DELETE FROM transactions WHERE id = ?", (transaction_id,)).rowcount == 1
