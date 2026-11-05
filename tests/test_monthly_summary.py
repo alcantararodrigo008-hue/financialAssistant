@@ -59,3 +59,13 @@ def test_invalid_models_cannot_corrupt_the_summary(value):
 def test_non_transaction_inputs_are_rejected(item):
     with pytest.raises(TypeError, match="Transaction"):
         calculate_monthly_summary([item])
+
+
+@pytest.mark.parametrize("expense,net", [("1000.01", "-0.01"), ("999.99", "0.01")])
+def test_rounded_zero_rate_does_not_change_exact_surplus_or_deficit(expense, net):
+    records = [Transaction("income", 1000, date(2024, 2, 29), "Other"),
+               Transaction("expense", expense, date(2024, 2, 29), "Other")]
+    summary = calculate_monthly_summary(records)
+    assert summary.net_savings == Decimal(net)
+    assert summary.savings_rate_percent == Decimal("0.0")
+    assert not summary.savings_rate_percent.is_signed()
