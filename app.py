@@ -10,6 +10,11 @@ from financial_assistant.goal_planning import required_monthly_savings
 from financial_assistant.models import CATEGORIES, FinancialGoal, Transaction
 from financial_assistant.monthly_summary import calculate_monthly_summary
 from financial_assistant.repository import SQLiteRepository
+from financial_assistant.visualizations import (
+    ChartRangeError,
+    daily_trends_spec,
+    expense_distribution_spec,
+)
 
 repository = SQLiteRepository()
 st.set_page_config(page_title="Financial Assistant", page_icon="€", layout="wide")
@@ -32,6 +37,29 @@ metric_columns[1].metric("Expenses", f"{summary.expenses:.2f} EUR")
 metric_columns[2].metric("Net savings", f"{summary.net_savings:.2f} EUR")
 metric_columns[3].metric("Savings rate", f"{summary.savings_rate_percent:.1f}%" if summary.savings_rate_percent is not None else "No income")
 st.caption("Net savings = income minus expenses. Savings rate = net savings / income × 100; unavailable without income.")
+
+
+def show_transaction_chart(title, builder, key, empty_message):
+    st.subheader(title)
+    try:
+        spec = builder(transactions)
+    except ChartRangeError:
+        st.info("These amounts exceed the chart's exact numeric range. Use the exact dashboard metrics and transaction records instead.")
+    else:
+        if spec is None:
+            st.info(empty_message)
+        else:
+            st.vega_lite_chart(spec=spec, use_container_width=True, key=key)
+
+
+st.caption("Charts use the same selected-month records as the metrics. Hover or tap for exact EUR amounts; axes use compact units (k, M).")
+show_transaction_chart("Expenses by category", expense_distribution_spec, "expense_distribution",
+                       "No expenses this month. Add an expense or choose another dashboard month.")
+show_transaction_chart("Daily income, expenses, and net savings", daily_trends_spec, "daily_trends",
+                       "No transactions this month. Add income or an expense to start the daily trend.")
+st.caption("Daily totals are not cumulative. Only recorded dates are plotted; gaps connect observations and do not imply missing dates had transactions.")
+if len({item.transaction_date for item in transactions}) == 1:
+    st.info("Only one recorded day this month: points show that day's totals. Add transactions on more dates to see a trend.")
 
 with st.expander("Add transaction", expanded=True), st.form("transaction_form"):
     columns = st.columns(3)
@@ -98,6 +126,7 @@ def show_goal(goal: FinancialGoal) -> None:
 
 
 st.subheader("Active goals")
+st.caption("Goal progress shows current saved balances, capped at 100%, independent of the transaction month. Goal balances are not historical monthly snapshots.")
 goals = repository.list_goals()
 active_goals = [goal for goal in goals if goal.status == "active"]
 if not active_goals:
