@@ -9,6 +9,7 @@ sys.path.insert(0, str(Path(__file__).parent / "src"))
 from financial_assistant.goal_planning import required_monthly_savings
 from financial_assistant.models import CATEGORIES, FinancialGoal, Transaction
 from financial_assistant.monthly_summary import calculate_monthly_summary
+from financial_assistant.recommendations import recommendations
 from financial_assistant.repository import SQLiteRepository
 from financial_assistant.visualizations import (
     ChartRangeError,
@@ -138,9 +139,17 @@ def show_goal(goal: FinancialGoal) -> None:
         st.rerun()
 
 
+goals = repository.list_goals()
+st.subheader("Explainable guidance")
+st.caption("Based on the selected month's recorded transactions and current goal balances, assessed as of today. Educational prompts, not financial advice or forecasts. List filters do not affect guidance.")
+suggestions = recommendations(transactions, goals, as_of=today)
+if suggestions:
+    for suggestion in suggestions:
+        st.text(suggestion.explanation)
+else:
+    st.info("No guidance rules triggered for the recorded data. This does not establish financial health or completeness.")
 st.subheader("Active goals")
 st.caption("Goal progress shows current saved balances, capped at 100%, independent of the transaction month. Goal balances are not historical monthly snapshots.")
-goals = repository.list_goals()
 active_goals = [goal for goal in goals if goal.status == "active"]
 if not active_goals:
     st.info("You have no active goals yet. Create one above.")
