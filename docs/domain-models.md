@@ -5,6 +5,11 @@
 import Streamlit or SQLite. Invalid input raises `ValueError` with a field-specific
 message; constructors do not parse date strings.
 
+Monetary UI fields supply decimal text directly, with no numeric default or float
+conversion. All three require explicit input, including current savings (`0` is
+valid). Missing/blank fields report a required-field error; malformed and non-finite
+values report field-specific validation errors without creating records.
+
 - Target and transaction amounts must be finite, positive numbers and remain
   positive after rounding to cents. Current savings must be finite and nonnegative,
   including before rounding. Decimal, integer, float, and numeric string inputs

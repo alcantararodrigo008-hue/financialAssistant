@@ -1,7 +1,9 @@
 # Goals screen
 
 Open **Create goal** in the app. Enter a nonblank name, positive target amount,
-current savings (zero is valid), optional deadline, and priority (1–5). **Save goal**
+current savings (enter `0` if none), optional deadline, and priority (1–5). Monetary
+fields start empty and require explicit decimal text using a dot, such as `12.50`.
+Blank, malformed, and non-finite values show errors rather than becoming defaults. **Save goal**
 validates the model before writing through the SQLite repository. On success the
 app reruns, confirms the save, and shows the new active goal. Validation errors
 leave storage unchanged. The existing repository methods and schema are unchanged.
@@ -59,6 +61,6 @@ missing/past/today deadlines, completion, and caller Decimal context isolation.
 Streamlit AppTest covers submissions, persistence, progress, messages, plain-text
 names, and unchanged data on viewing or invalid submission. Tests use temporary
 SQLite files. Browser layout and a live HTTP server are not tested. Existing
-number widgets use floats, so very large inputs remain subject to widget precision
-limits; persisted money and estimates use Decimal. Editing goals,
+monetary text inputs, persisted money, and estimates use Decimal without a float
+conversion. Amounts must fit the model's Decimal precision. Editing goals,
 transaction allocation, and broad UI/storage-error handling belong to later issues.

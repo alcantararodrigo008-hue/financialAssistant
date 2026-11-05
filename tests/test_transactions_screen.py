@@ -25,7 +25,7 @@ def test_transaction_form_persists_selected_fields_and_survives_restart(transact
     app.run()
     app.date_input(key="dashboard_month").set_value(date(2024, 2, 1)).run()
     next(item for item in app.selectbox if item.label == "Type").set_value(kind)
-    next(item for item in app.number_input if item.label == "Amount (EUR)").set_value(amount)
+    next(item for item in app.text_input if item.label == "Amount (EUR)").set_value(str(amount))
     next(item for item in app.date_input if item.label == "Date").set_value(date(2024, 2, 29))
     next(item for item in app.selectbox if item.label == "Category").set_value("Food")
     next(item for item in app.text_input if item.label == "Description (optional)").set_value(description)
@@ -55,17 +55,18 @@ def test_transaction_form_persists_selected_fields_and_survives_restart(transact
 def test_invalid_transaction_does_not_write_and_can_be_corrected(transactions_app, invalid_field):
     repository, app, _ = transactions_app
     app.run()
+    next(item for item in app.text_input if item.label == "Amount (EUR)").set_value("1")
     if invalid_field == "date":
         next(item for item in app.date_input if item.label == "Date").set_value(None)
     else:
-        next(item for item in app.number_input if item.label == "Amount (EUR)").set_value(1e100)
+        next(item for item in app.text_input if item.label == "Amount (EUR)").set_value("1e100")
     next(item for item in app.button if item.label == "Save transaction").click().run()
     assert not app.exception
     assert app.error
     assert not app.success
     assert repository.list_transactions() == []
     next(item for item in app.date_input if item.label == "Date").set_value(date(2024, 2, 29))
-    next(item for item in app.number_input if item.label == "Amount (EUR)").set_value(1.0)
+    next(item for item in app.text_input if item.label == "Amount (EUR)").set_value("1.00")
     next(item for item in app.button if item.label == "Save transaction").click().run()
     assert not app.exception
     assert len(repository.list_transactions()) == 1

@@ -2,7 +2,10 @@
 
 Source: [Issue #10](https://github.com/alcantararodrigo008-hue/financialAssistant/issues/10).
 
-- Invalid submissions: amount widgets allow input for validation; zero/negative
+- Invalid submissions: required decimal text inputs preserve missing, malformed,
+  NaN, and infinite amounts for explicit validation instead of falling back to
+  numeric widget defaults. Current savings requires explicit input; `0` is valid.
+  Zero/negative
   targets and transaction amounts, negative savings, rounded-to-zero money,
   malformed dates, and blank goal names are rejected by existing models before
   writes. Errors remain visible in the form; zero savings remains valid.

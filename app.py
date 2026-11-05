@@ -35,7 +35,7 @@ metric_columns[3].metric("Savings rate", f"{(savings / income * 100):.1f}%" if i
 with st.expander("Add transaction", expanded=True), st.form("transaction_form"):
     columns = st.columns(3)
     transaction_type = columns[0].selectbox("Type", ["income", "expense"], format_func=lambda value: "Income" if value == "income" else "Expense")
-    amount = columns[1].number_input("Amount (EUR)", value=0.01, step=10.0, help="Enter a positive amount. Zero and negative amounts cannot be saved.")
+    amount = columns[1].text_input("Amount (EUR)", value=None, placeholder="e.g. 12.50", help="Required. Enter a positive decimal amount using a dot; no currency symbols or commas.")
     transaction_date = columns[2].date_input("Date", today)
     category = st.selectbox("Category", sorted(CATEGORIES))
     description = st.text_input("Description (optional)")
@@ -55,8 +55,8 @@ if st.session_state.pop("transaction_saved", False):
 
 with st.expander("Create goal"), st.form("goal_form"):
     name = st.text_input("Goal name")
-    target_amount = st.number_input("Target amount (EUR)", value=0.01, step=100.0, help="Enter a positive target amount.")
-    saved_amount = st.number_input("Current savings (EUR)", value=0.0, step=50.0, help="Zero is valid; negative savings cannot be saved.")
+    target_amount = st.text_input("Target amount (EUR)", value=None, placeholder="e.g. 1000.00", help="Required. Enter a positive decimal target using a dot.")
+    saved_amount = st.text_input("Current savings (EUR)", value=None, placeholder="Enter 0 if you have no savings", help="Required. Enter a nonnegative decimal amount using a dot. Zero is valid; blank is not zero.")
     deadline = st.date_input("Deadline (optional)", value=None)
     priority = st.number_input("Priority", min_value=1, max_value=5, value=1)
     if st.form_submit_button("Save goal"):

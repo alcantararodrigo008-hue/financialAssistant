@@ -1,5 +1,6 @@
 from dataclasses import replace
 from datetime import date
+from decimal import Decimal
 from pathlib import Path
 
 import pytest
@@ -31,7 +32,9 @@ def test_invalid_amounts_show_errors_without_changing_existing_records(validatio
     goals, transactions = repository.list_goals(), repository.list_transactions()
     app.run()
     next(item for item in app.text_input if item.label == "Goal name").set_value("New goal")
-    next(item for item in app.number_input if item.label == label).set_value(value)
+    next(item for item in app.text_input if item.label == "Target amount (EUR)").set_value("100")
+    next(item for item in app.text_input if item.label == "Current savings (EUR)").set_value("0")
+    next(item for item in app.text_input if item.label == label).set_value(str(value))
     next(item for item in app.button if item.label == submit).click().run()
     assert not app.exception
     assert any(error in item.value for item in app.error)
@@ -94,3 +97,65 @@ def test_deletion_requires_confirmation_and_protects_changed_records(validation_
     assert get(other_id) == other
     if kind == "transaction" and outcome == "confirm":
         assert app.metric[0].value == "200.00 EUR"
+
+
+@pytest.mark.parametrize("label,submit,field", [
+    ("Amount (EUR)", "Save transaction", "Transaction amount"),
+    ("Target amount (EUR)", "Save goal", "Target amount"),
+    ("Current savings (EUR)", "Save goal", "Current savings"),
+])
+@pytest.mark.parametrize("raw", [None, float("nan"), float("inf"), float("-inf"), "", "   ", "not-money", "12,34", "1,000.00", "EUR 12.50"])
+def test_money_text_never_normalizes_invalid_submissions_to_defaults(validation_app, label, submit, field, raw):
+    repository, app = validation_app
+    repository.add_goal(FinancialGoal("Keep", 100))
+    repository.add_transaction(Transaction("income", 50, date(2024, 2, 1), "Other"))
+    original_goals, original_transactions = repository.list_goals(), repository.list_transactions()
+    app.run()
+    next(item for item in app.text_input if item.label == "Goal name").set_value("New goal")
+    for money_label, value in [("Amount (EUR)", "10"), ("Target amount (EUR)", "100"), ("Current savings (EUR)", "0")]:
+        next(item for item in app.text_input if item.label == money_label).set_value(value)
+    # A text widget receives the browser's string spelling of NaN/inf, not a double.
+    payload = None if raw is None else str(raw)
+    next(item for item in app.text_input if item.label == label).set_value(payload)
+    next(item for item in app.button if item.label == submit).click().run()
+    assert not app.exception
+    assert next(item for item in app.text_input if item.label == label).value == payload
+    assert any(field in item.value for item in app.error)
+    assert not app.success
+    assert repository.list_goals() == original_goals
+    assert repository.list_transactions() == original_transactions
+
+
+@pytest.mark.parametrize("kind", ["income", "expense", "goal"])
+def test_valid_decimal_text_and_zero_savings_persist_exactly_after_reopening(validation_app, kind):
+    repository, app = validation_app
+    amount = "9007199254740993.01"  # Beyond exact IEEE-754 integer precision.
+    app.run()
+    if kind == "goal":
+        next(item for item in app.text_input if item.label == "Goal name").set_value("Exact target")
+        next(item for item in app.text_input if item.label == "Target amount (EUR)").set_value(amount)
+        next(item for item in app.text_input if item.label == "Current savings (EUR)").set_value("0")
+        button = "Save goal"
+    else:
+        next(item for item in app.selectbox if item.label == "Type").set_value(kind)
+        next(item for item in app.text_input if item.label == "Amount (EUR)").set_value(amount)
+        next(item for item in app.date_input if item.label == "Date").set_value(date(2024, 2, 1))
+        button = "Save transaction"
+    next(item for item in app.button if item.label == button).click().run()
+    assert not app.exception
+    assert not app.error
+    assert any("saved." in item.value for item in app.success)
+    reopened = AppTest.from_file(str(Path(__file__).resolve().parents[1] / "app.py"), default_timeout=10).run()
+    assert not reopened.exception
+    if kind == "goal":
+        goal = repository.list_goals()[0]
+        assert goal.target_amount == Decimal(amount)
+        assert goal.saved_amount == Decimal("0.00")
+        assert any(f"0.00 / {amount} EUR" in item.value for item in reopened.caption)
+    else:
+        reopened.date_input(key="dashboard_month").set_value(date(2024, 2, 1)).run()
+        assert not reopened.exception
+        transaction = repository.list_transactions()[0]
+        assert transaction.amount == Decimal(amount)
+        assert transaction.transaction_type == kind
+        assert reopened.dataframe[0].value["Amount"].tolist() == [f"{amount} EUR"]

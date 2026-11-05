@@ -24,10 +24,15 @@ CATEGORIES = {
 
 
 def _amount(value: Decimal | float | str, label: str, *, allow_zero: bool = False) -> Decimal:
+    if value is None or (isinstance(value, str) and not value.strip()):
+        raise ValueError(f"{label} is required. Enter a decimal amount.")
     if isinstance(value, bool) or not isinstance(value, (Decimal, int, float, str)):
         raise ValueError(f"{label} must be a finite number.")  # noqa: TRY004 - uniform domain validation errors
     try:
         amount = Decimal(str(value))
+    except DecimalException as error:
+        raise ValueError(f"{label} must be a valid decimal number.") from error
+    try:
         if not amount.is_finite():
             raise ValueError(f"{label} must be a finite number.")
         if amount < 0 or (not allow_zero and amount == 0):
