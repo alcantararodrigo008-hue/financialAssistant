@@ -37,6 +37,19 @@ metric_columns[1].metric("Expenses", f"{summary.expenses:.2f} EUR")
 metric_columns[2].metric("Net savings", f"{summary.net_savings:.2f} EUR")
 metric_columns[3].metric("Savings rate", f"{summary.savings_rate_percent:.1f}%" if summary.savings_rate_percent is not None else "No income")
 st.caption("Net savings = income minus expenses. Savings rate = net savings / income × 100; unavailable without income.")
+if not transactions:
+    st.info("No transactions recorded for this month. Open Add transaction to record income or an expense, or choose another dashboard month. A savings rate needs recorded income.")
+else:
+    if summary.income == 0:
+        st.info("No income recorded for this month. The savings rate is unavailable; recorded expenses still count toward the monthly balance.")
+    if summary.expenses == 0:
+        st.info("No expenses recorded for this month. Net savings equal the recorded income; this does not imply all real-world expenses have been entered.")
+    if summary.net_savings < 0:
+        st.warning(f"Monthly deficit: {summary.net_savings.copy_abs():.2f} EUR. Recorded expenses exceed income; this is a shortfall, not savings.")
+    elif summary.net_savings == 0:
+        st.info("Balanced month: recorded income equals expenses. Net savings are 0.00 EUR.")
+    else:
+        st.info(f"Monthly surplus: {summary.net_savings:.2f} EUR. This is recorded income minus expenses, not an automatic contribution to goals.")
 
 
 def show_transaction_chart(title, builder, key, empty_message):
@@ -113,7 +126,7 @@ def show_goal(goal: FinancialGoal) -> None:
     elif goal.deadline is None:
         st.info("No deadline. Save at your own pace; no monthly estimate is set.")
     elif goal.deadline < today:
-        st.warning(f"Deadline passed ({goal.deadline.isoformat()}). Review the deadline or remaining amount.")
+        st.warning(f"Overdue goal. Deadline passed ({goal.deadline.isoformat()}). Review the deadline or remaining amount.")
     elif goal.deadline == today:
         st.warning("Due today. The remaining amount is due now; no monthly estimate applies.")
     else:

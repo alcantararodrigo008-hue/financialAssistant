@@ -40,4 +40,6 @@ def calculate_monthly_summary(transactions: Iterable[Transaction]) -> MonthlySum
                 expenses += item.amount
         net = income - expenses
         rate = ((net / income) * 100).quantize(Decimal("0.1"), rounding=ROUND_HALF_EVEN) if income > 0 else None
+        if rate == 0:
+            rate = Decimal("0.0")  # Normalize signed zero; deficit messages use the exact net balance.
         return MonthlySummary(income, expenses, net, rate)
