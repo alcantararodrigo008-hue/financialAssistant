@@ -90,7 +90,9 @@ def test_active_goals_keep_priority_order_and_completed_goals_are_separate(goals
     original = repository.list_goals()
     app.run()
     assert not app.exception
-    assert [item.value for item in app.text] == ["High priority", "Low priority", "Completed"]
+    # Guidance also renders plain text; check goal order independently of it.
+    names = {goal.name for goal in original}
+    assert [item.value for item in app.text if item.value in names] == ["High priority", "Low priority", "Completed"]
     completed = next(item for item in app.expander if item.label == "Completed goals")
     assert [item.value for item in completed.text] == ["Completed"]
     assert repository.list_goals() == original
