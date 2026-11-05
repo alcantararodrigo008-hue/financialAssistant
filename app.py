@@ -7,6 +7,7 @@ import streamlit as st
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 from financial_assistant.goal_planning import required_monthly_savings
+from financial_assistant.guidance_config import DEFAULT_GUIDANCE_CONFIG
 from financial_assistant.models import CATEGORIES, FinancialGoal, Transaction
 from financial_assistant.monthly_summary import calculate_monthly_summary
 from financial_assistant.recommendations import recommendations
@@ -142,7 +143,7 @@ def show_goal(goal: FinancialGoal) -> None:
 goals = repository.list_goals()
 st.subheader("Explainable guidance")
 st.caption("Based on the selected month's recorded transactions and current goal balances, assessed as of today. Educational prompts, not financial advice or forecasts. List filters do not affect guidance.")
-suggestions = recommendations(transactions, goals, as_of=today)
+suggestions = recommendations(transactions, goals, as_of=today, config=DEFAULT_GUIDANCE_CONFIG)
 if suggestions:
     for suggestion in suggestions:
         st.text(suggestion.explanation)
