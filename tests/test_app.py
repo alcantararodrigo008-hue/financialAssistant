@@ -40,7 +40,7 @@ def test_valid_models_work_through_app_forms(tmp_path, monkeypatch):
     assert not reopened.exception
     assert reopened.metric[0].value == "25.00 EUR"
     assert reopened.dataframe[0].value.iloc[0]["Amount"] == "25.00 EUR"
-    assert any("Emergency fund" in item.value for item in reopened.markdown)
+    assert any("Emergency fund" in item.value for item in reopened.text)
 
 
 @pytest.mark.parametrize("records,expected", [

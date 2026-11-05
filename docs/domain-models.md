@@ -15,8 +15,9 @@ message; constructors do not parse date strings.
   failures into field-specific `ValueError`s, and checks that the rounded result is
   finite. Caller trap settings are preserved; disabling that trap cannot admit NaN.
 - Dates must be calendar `date` objects, not `datetime` timestamps. A goal deadline
-  may be `None`. Past dates and future dates are allowed; overdue-goal guidance is
-  a later issue. A caller must construct valid dates, e.g. `date(2024, 2, 29)`.
+  may be `None`. Past dates and future dates are allowed; the [goals screen](goals-screen.md)
+  explains deadlines without rejecting existing overdue goals. A caller must
+  construct valid dates, e.g. `date(2024, 2, 29)`.
 - A goal needs a nonblank text name, positive integer priority, and `active` or
   `completed` status. Higher priorities are allowed; the current UI offers 1–5.
 - A transaction type is `income` or `expense`. Its category must be one of Housing,
@@ -38,5 +39,5 @@ expense = Transaction("expense", "12.50", date(2026, 11, 4), "Food")
 Tests cover valid values, all allowed categories/types/statuses, rounding, malformed
 and non-finite amounts, invalid dates and choices, and model immutability. Streamlit
 form tests and repository round trips verify compatibility using temporary data.
-Displaying friendly form validation errors remains Issue #10; this change does not
-alter the UI's handling of raised exceptions or migrate existing stored records.
+The goals form displays model validation errors before saving. Broader transaction
+form validation remains Issue #10. Existing invalid stored records are not migrated.
