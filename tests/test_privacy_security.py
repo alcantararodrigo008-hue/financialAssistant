@@ -7,9 +7,12 @@ import re
 import socket
 import subprocess
 import sys
+from contextvars import ContextVar
 from datetime import date
+from ipaddress import ip_address
 from pathlib import Path
 
+import pytest
 from streamlit.testing.v1 import AppTest
 
 from financial_assistant.models import Transaction
@@ -86,9 +89,39 @@ def test_local_financial_flow_needs_no_network_or_account(tmp_path, monkeypatch)
         attempts.append(True)
         raise AssertionError("Unexpected network connection in local financial flow.")
 
-    monkeypatch.setattr(socket.socket, "connect", deny)
+    # Newer Streamlit creates asyncio loops per AppTest run. Windows implements
+    # their internal socketpair using a loopback TCP handshake. Permit only that
+    # stdlib setup in its own context, never application/external connections.
+    pair_setup = ContextVar("pair_setup", default=False)
+    real_pair, real_connect = socket.socketpair, socket.socket.connect
+
+    def local_pair(*args, **kwargs):
+        token = pair_setup.set(True)
+        try:
+            return real_pair(*args, **kwargs)
+        finally:
+            pair_setup.reset(token)
+
+    def guarded_connect(sock, address):
+        if pair_setup.get() and ip_address(address[0]).is_loopback:
+            return real_connect(sock, address)
+        return deny()
+
+    monkeypatch.setattr(socket, "socketpair", local_pair)
+    monkeypatch.setattr(socket.socket, "connect", guarded_connect)
     monkeypatch.setattr(socket.socket, "connect_ex", deny)
     monkeypatch.setattr(socket, "create_connection", deny)
+    # Exercise the exception, then prove it does not leak to application calls.
+    left, right = socket.socketpair()
+    with left, right:
+        left.sendall(b"synthetic")
+        assert right.recv(9) == b"synthetic"
+    with socket.socket() as probe:
+        for address in ("127.0.0.1", "203.0.113.1"):
+            with pytest.raises(AssertionError, match="Unexpected network connection"):
+                probe.connect((address, 9))
+    assert len(attempts) == 2
+    attempts.clear()
     app = AppTest.from_file(str(ROOT / "app.py"), default_timeout=15).run()
     repo = SQLiteRepository()
     day = date(2024, 2, 29)

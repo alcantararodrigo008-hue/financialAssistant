@@ -85,8 +85,10 @@ history or delete branches without explicit authorization.
 configuration resolution in a fresh process; private ignore paths and public
 trackability; indexed database/known-secret checks; chart payload minimization; and
 synthetic goal/income/expense creation, invalid-input rejection and reopening while
-Python socket connections are blocked. Existing tests cover bound SQL, rollback,
-confirmed/stale deletion, amount validation and literal user text.
+application socket connections are blocked. The standard-library socketpair
+loopback handshake used by Windows asyncio is allowed only during its own setup;
+application and external connection attempts still fail. Existing tests cover bound
+SQL, rollback, confirmed/stale deletion, amount validation and literal user text.
 
 Live browser verification uses an isolated synthetic database and the repository
 configuration, with external HTTP/WebSocket traffic blocked/observed. It is an
